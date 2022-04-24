@@ -1,57 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Checkbox, Center } from '@chakra-ui/react';
 import { TableComponent } from '../../components/Table';
-
-const data = [
-  {
-    id: 1,
-    name: 'Valor1',
-    testeItem: 'valor1-01',
-  },
-  {
-    id: 2,
-    name: 'Valor2',
-    testeItem: 'valor2-02',
-  },
-  {
-    id: 3,
-    name: 'Valor3',
-    testeItem: 'valor3-03',
-  },
-];
+import { getData } from '../../offlineData';
 
 function TablePage() {
   const [loading, setLoading] = useState(false);
-  const [selecteds, setSelecteds] = useState([data[0]]);
+  const [selecteds, setSelecteds] = useState([]);
+  const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [totalItens, setTotalItens] = useState(0);
 
   const onChangeSelect = row => {
-    const exists = selecteds.filter(item => item.id === row.id);
+    const exists = selecteds.filter(
+      item => item.id.toString() === row.id.toString()
+    );
+
+    console.log('EXIST', exists);
 
     if (exists.length === 0) {
       setSelecteds([...selecteds, row]);
     } else {
-      setSelecteds(selecteds.filter(item => item.id !== row.id));
+      setSelecteds([
+        ...selecteds,
+        selecteds.filter(item => item.id.toString() !== row.id.toString()),
+      ]);
     }
   };
 
+  const onChangePage = async page => {
+    setCurrentPage(page);
+    setLoading(true);
+    const { data, totalItens } = await getData(pageSize, page);
+    setTotalItens(totalItens);
+    setData(data);
+    setLoading(false);
+  };
+
   React.useEffect(() => {
-    console.log(selecteds);
+    console.log('SELECTS', selecteds);
   }, [selecteds]);
 
   const columns = [
     {
       title: 'Selecionar',
       key: 'select',
-      renderData: row => (
-        <Center>
-          <Checkbox
-            defaultChecked={
-              selecteds.filter(item => item.id === row.id).length > 0
-            }
-            onChange={() => onChangeSelect(row)}
-          />
-        </Center>
-      ),
+      renderData: row => {
+        console.log('ROW', row);
+        return (
+          <Center>
+            <Checkbox
+              defaultChecked={
+                selecteds.filter(
+                  item => item.id?.toString() === row.id?.toString()
+                ).length > 0
+              }
+              onChange={() => onChangeSelect(row)}
+            />
+          </Center>
+        );
+      },
     },
     {
       title: 'id',
@@ -87,6 +95,10 @@ function TablePage() {
     }, 2000);
   };
 
+  useEffect(() => {
+    onChangePage(currentPage);
+  }, []);
+
   return (
     <div>
       <button onClick={tableLoading}>Carregar</button>
@@ -97,6 +109,10 @@ function TablePage() {
         data={data}
         columns={columns}
         loading={loading}
+        pageCurrent={currentPage}
+        onChangePage={onChangePage}
+        pageSize={pageSize}
+        totalItens={totalItens}
       />
     </div>
   );

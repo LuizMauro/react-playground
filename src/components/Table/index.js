@@ -12,6 +12,7 @@ import {
 
 import { Headers } from './Headers';
 import { Rows } from './Rows';
+import { PaginationComponent } from './Pagination';
 
 /*
   Props: 
@@ -32,9 +33,14 @@ import { Rows } from './Rows';
 function TableComponent({
   data,
   columns,
-  haveFooter,
+  columnsFooter,
   caption,
   loading,
+  pageCurrent,
+  pageSize,
+  totalItens,
+  totalPages,
+  onChangePage,
   ...props
 }) {
   return (
@@ -49,7 +55,7 @@ function TableComponent({
         <Tbody>
           <Rows columns={columns} data={data} loading={loading} />
         </Tbody>
-        {haveFooter && (
+        {columnsFooter && (
           <Tfoot>
             <Tr>
               <Headers columns={columns} />
@@ -57,6 +63,12 @@ function TableComponent({
           </Tfoot>
         )}
       </Table>
+      <PaginationComponent
+        pageSize={pageSize}
+        pageCurrent={pageCurrent}
+        totalItens={totalItens}
+        onPageChange={onChangePage}
+      />
     </TableContainer>
   );
 }
